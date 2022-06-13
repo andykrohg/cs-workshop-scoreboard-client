@@ -4,37 +4,19 @@
     # TODO: get this from an environment variable, most likely
     scoreboard_server: http://localhost:8080
   tasks:
-  
-  # TODO: setup rosa and aws credentials  
+  - name: Include Cluster Deployment Tasks
+    include_tasks: deploy_cluster.yml
 
-  - name: Get cluster list
-    shell: >
-      rosa list clusters -o yaml
-    register: _cluster_list
-
-  - name: Set cluster info
-    set_fact:
-      cluster_info: "{{ _cluster_list.stdout | from_yaml | json_query('[0]') }}"
-
-  - name: Get cluster name
-    set_fact:
-      cluster_name: "{{ cluster_info.name }}"
-      cluster_state: " {{ cluster_info.state }}"
-
-  # TODO: Get actual progress statuses
+  - name: Include App Deployment Tasks
+    include_tasks: deploy_app.yml
 
   - name: Post progress report
     uri:
       url: "{{ scoreboard_server }}/progress-reports"
       method: PUT
       body:
-        attendeeName: catherine
-        statuses:
-        - success
-        - success
-        - success
-        - success
-        - pending
+        attendeeName: andy
+        clusterTasks: "{{ cluster_tasks }}"
+        appTasks: "{{ app_tasks }}"
       body_format: json
       status_code: 204
-

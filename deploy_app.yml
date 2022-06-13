@@ -1,0 +1,65 @@
+- name: Check for backend service
+  k8s_info:
+    kind: Deployment
+    namespace: ostoy
+    name: ostoy-microservice
+  register: _backend_service_result
+
+- name: Set backend fact if the service is deployed
+  set_fact:
+    backend_status: "success"
+  when: _backend_service_result.resources
+
+- name: Check for frontend service
+  k8s_info:
+    kind: Deployment
+    namespace: ostoy
+    name: ostoy-frontend
+  register: _frontend_service_result
+
+- name: Set frontend fact if the service is deployed
+  set_fact:
+    frontend_status: "success"
+  when: _frontend_service_result.resources
+
+- name: Get frontend Pod(s)
+  k8s_info:
+    kind: Pod
+    namespace: ostoy
+    label_selectors:
+    - app = ostoy-frontend
+  register: _frontend_pods
+
+- name: Get events
+  k8s_info:
+    kind: Event
+    namespace: ostoy
+  register: _events_list
+
+- name: Check for app malfunction
+  set_fact:
+    pod_was_killed: "{{ _frontend_pods.resources | json_query('[].status.containerStatuses[?restartCount>`0`][]') | count > 0 }}"
+    liveness_probe: "{{ 'liveness probe' in (_events_list.resources | string) }}"
+
+- name: Set partial credit for app malfunction
+  set_fact:
+    malfunction_status: "info"
+  when: pod_was_killed or liveness_probe
+
+- name: Set full credit for app malfunction
+  set_fact:
+    malfunction_status: "success"
+  when: pod_was_killed and liveness_probe
+
+# TODO check for other
+- name: Store app task results
+  set_fact:
+    app_tasks:
+      - "{{ backend_status | default('pending') }}"
+      - "{{ frontend_status | default('pending') }}"
+      - "{{ malfunction_status | default('pending') }}"
+      - "{{ file_status | default('pending') }}"
+      - "{{ hpa_status | default('pending') }}"
+      - "{{ logging_status | default('pending') }}"
+      - "{{ s2i_status | default('pending') }}"
+      - "{{ webhook_status | default('pending') }}"
