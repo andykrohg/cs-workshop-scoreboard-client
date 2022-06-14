@@ -16,6 +16,9 @@ ROSA_AWS_DEFAULT_REGION=$(aws configure get region)
 ```
 
 ### Prepare your OCM Credentials
+
+> You may need to get this from here instead of following the steps below: https://console.redhat.com/openshift/token/rosa/show
+
 * If you're on Linux, it probably lives here: `cat ~/.config/ocm/ocm.json`
 * If you're on Mac, it probably lives here: `cat ~/Library/Application\ Support/ocm/ocm.json`
 
