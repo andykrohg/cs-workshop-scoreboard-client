@@ -10,60 +10,80 @@
 #   set_fact:
 #     rosa_token: "{{ (openshift_pull_secret.resources[0].data['.dockerconfigjson'] | b64decode | from_json)['auths']['console.redhat.com']['auth'] | b64decode }}"
 
+- name: Get cluster information
+  block:
+    - name: Get cluster list
+      shell: >
+        rosa list clusters -o yaml
+      register: _cluster_list
 
-- name: Get cluster list
-  shell: >
-    rosa list clusters -o yaml
-  register: _cluster_list
+    - name: Set cluster info
+      set_fact:
+        cluster_info: "{{ _cluster_list.stdout | from_yaml | json_query('[0]') }}"
+        cacheable: yes
 
-- name: Set cluster info
-  set_fact:
-    cluster_info: "{{ _cluster_list.stdout | from_yaml | json_query('[0]') }}"
+    - name: Get cluster name
+      set_fact:
+        cluster_name: "{{ cluster_info.name }}"
+        cluster_state: " {{ cluster_info.state }}"
+        cacheable: yes
+  when: cluster_name is not defined
 
-- name: Get cluster name
-  set_fact:
-    cluster_name: "{{ cluster_info.name }}"
-    cluster_state: " {{ cluster_info.state }}"
+- name: Get IDP info
+  block:
+    - name: Get IDP list
+      shell: >
+        rosa list idps -c {{ cluster_name }} -o yaml
+      register: _idp_list
 
-- name: Get IDP list
-  shell: >
-    rosa list idps -c {{ cluster_name }} -o yaml
-  register: _idp_list
+    - name: Set IDP fact if deployed
+      set_fact:
+        idp_status: "success"
+        cacheable: yes
+      when: _idp_list.stdout | from_yaml | length > 0
+  when: idp_status is not defined
 
-- name: Set IDP fact if deployed
-  set_fact:
-    idp_status: "success"
-  when: _idp_list.stdout | from_yaml | length > 0
+- name: Get User info
+  block:
+    - name: Get User list
+      shell: >
+        rosa list users -c {{ cluster_name }}
+      register: _user_list
 
-- name: Get User list
-  shell: >
-    rosa list users -c {{ cluster_name }}
-  register: _user_list
+    - name: Set User fact if they're an admin
+      set_fact:
+        user_status: "success"
+        cacheable: yes
+      when: '"cluster-admins" in _user_list.stdout'
+  when: user_status is not defined
 
-- name: Set User fact if they're an admin
-  set_fact:
-    user_status: "success"
-  when: '"cluster-admins" in _user_list.stdout'
+- name: Get Machine pool info
+  block:
+    - name: Get MachinePool list
+      shell: >
+        rosa list machinepools -c {{ cluster_name }} -o yaml
+      register: _machinepool_list
 
-- name: Get MachinePool list
-  shell: >
-    rosa list machinepools -c {{ cluster_name }} -o yaml
-  register: _machinepool_list
+    - name: Set Machinepool fact if they created one besides default
+      set_fact:
+        machinepool_status: "success"
+        cacheable: yes
+      when: _machinepool_list.stdout | from_yaml | length > 1
 
-- name: Set Machinepool fact if they created one besides default
-  set_fact:
-    machinepool_status: "success"
-  when: _machinepool_list.stdout | from_yaml | length > 1
+    - name: Set label fact if they applied labels
+      set_fact:
+        label_status: "success"
+        cacheable: yes
+      when: '"labels" in _machinepool_list.stdout'
 
-- name: Set label fact if they applied labels
-  set_fact:
-    label_status: "success"
-  when: '"labels" in _machinepool_list.stdout'
-
-- name: Set Autoscaling fact if completed
-  set_fact:
-    autoscaling_status: "success"
-  when: '"autoscaling" in _machinepool_list.stdout'
+    - name: Set Autoscaling fact if completed
+      set_fact:
+        autoscaling_status: "success"
+        cacheable: yes
+      when: '"autoscaling" in _machinepool_list.stdout'
+  when: machinepool_status is not defined or
+        label_status is not defined or
+        autoscaling_status is not defined
 
 - name: Store cluster task results
   set_fact:
