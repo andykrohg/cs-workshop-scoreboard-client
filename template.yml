@@ -41,6 +41,45 @@ objects:
             value: ${SCOREBOARD_SERVER}
           image: quay.io/akrohg/cs-workshop-scoreboard-client
           name: cs-workshop-scoreboard-client
+- kind: ClusterRole
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: cluster-pod-view-exec
+  rules:
+    - verbs:
+        - get
+        - watch
+        - list
+        - create
+      apiGroups:
+        - ''
+      resources:
+        - pods
+        - pods/exec
+- kind: ClusterRoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: scoreboard-client-view
+  subjects:
+    - kind: ServiceAccount
+      name: default
+      namespace: cs-workshop-scoreboard-client
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: view
+- kind: ClusterRoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: scoreboard-client-pod-view-exec
+  subjects:
+    - kind: ServiceAccount
+      name: default
+      namespace: cs-workshop-scoreboard-client
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cluster-pod-view-exec
 parameters:
 - description: User's name
   name: MY_NAME
@@ -56,4 +95,7 @@ parameters:
   required: true
 - description: OCM Token
   name: ROSA_OCM_TOKEN
+  required: true
+- description: Scoreboard Server URL
+  name: SCOREBOARD_SERVER
   required: true
