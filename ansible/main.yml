@@ -1,8 +1,8 @@
 - hosts: localhost
   gather_facts: false
   vars:
-    # TODO: get this from an environment variable, most likely
-    scoreboard_server: http://localhost:8080
+    scoreboard_server: "{{ lookup('env', 'SCOREBOARD_SERVER') }}"
+    attendee_name: "{{ lookup('env', 'MY_NAME') }}"
   tasks:
   - name: Include Cluster Deployment Tasks
     include_tasks: deploy_cluster.yml
@@ -15,7 +15,7 @@
       url: "{{ scoreboard_server }}/progress-reports"
       method: PUT
       body:
-        attendeeName: andy
+        attendeeName: "{{ attendee_name }}"
         clusterTasks: "{{ cluster_tasks }}"
         appTasks: "{{ app_tasks }}"
       body_format: json

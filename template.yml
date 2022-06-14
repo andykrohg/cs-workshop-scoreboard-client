@@ -1,0 +1,59 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: cs-workshop-scoreboard-template
+  annotations:
+    description: "Cloud Services Workshop Scoreboard Template"
+    iconClass: "icon-openshift"
+    tags: "workshop"
+objects:
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+    name: cs-workshop-scoreboard-client
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: cs-workshop-scoreboard-client
+    namespace: cs-workshop-scoreboard-client
+  spec:
+    selector: 
+      matchLabels:
+        app: cs-workshop-scoreboard-client
+    template:
+      metadata:
+        labels:
+          app: cs-workshop-scoreboard-client
+      spec:
+        containers:
+        - env:
+          - name: MY_NAME
+            value: ${MY_NAME}      
+          - name: AWS_ACCESS_KEY_ID
+            value: ${AWS_ACCESS_KEY_ID}
+          - name: AWS_SECRET_ACCESS_KEY
+            value: ${AWS_SECRET_ACCESS_KEY}
+          - name: AWS_DEFAULT_REGION
+            value: ${AWS_DEFAULT_REGION}
+          - name: ROSA_OCM_TOKEN
+            value: ${ROSA_OCM_TOKEN}
+          - name: SCOREBOARD_SERVER
+            value: ${SCOREBOARD_SERVER}
+          image: quay.io/akrohg/cs-workshop-scoreboard-client
+          name: cs-workshop-scoreboard-client
+parameters:
+- description: User's name
+  name: MY_NAME
+  required: true
+- description: AWS Access Key ID
+  name: AWS_ACCESS_KEY_ID
+  required: true
+- description: AWS Secret Access Key
+  name: AWS_SECRET_ACCESS_KEY
+  required: true
+- description: AWS Default Region
+  name: AWS_DEFAULT_REGION
+  required: true
+- description: OCM Token
+  name: ROSA_OCM_TOKEN
+  required: true

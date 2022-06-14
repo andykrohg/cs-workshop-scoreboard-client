@@ -30,16 +30,16 @@
     when: _frontend_service_result.resources
   when: frontend_status is not defined
 
+- name: Get frontend Pod(s)
+  k8s_info:
+    kind: Pod
+    namespace: ostoy
+    label_selectors:
+    - app = ostoy-frontend
+  register: _frontend_pods
+
 - name: Health check and file usage
   block:
-  - name: Get frontend Pod(s)
-    k8s_info:
-      kind: Pod
-      namespace: ostoy
-      label_selectors:
-      - app = ostoy-frontend
-    register: _frontend_pods
-
   - name: Get events
     k8s_info:
       kind: Event
@@ -66,12 +66,14 @@
     shell: >
       oc exec -it {{ _frontend_pods.resources[0].metadata.name }} -n ostoy -- ls /var/demo_files
     register: _file_check_result
+    when: _frontend_pods.resources
 
   - name: Set file fact if one has been created
     set_fact:
       file_status: "success"
       cacheable: yes
-    when: _file_check_result.stdout_lines | count > 1
+    when: _file_check_result.stdout_lines is defined and 
+          _file_check_result.stdout_lines | count > 1
   when: malfunction_status is not defined or
         malfunction_status != 'success' or
         file_status is not defined
