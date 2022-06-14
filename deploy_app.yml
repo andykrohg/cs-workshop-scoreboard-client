@@ -64,7 +64,7 @@
 
   - name: Check for files
     shell: >
-      oc exec -it {{ _frontend_pods.resources[0].metadata.name }} -- ls /var/demo_files
+      oc exec -it {{ _frontend_pods.resources[0].metadata.name }} -n ostoy -- ls /var/demo_files
     register: _file_check_result
 
   - name: Set file fact if one has been created
@@ -144,6 +144,21 @@
         s2i_status != 'success'
 
 # TODO Webhook check
+- name: Get Webhook info
+  block:
+  - name: Get builds
+    k8s_info:
+      api_version: build.openshift.io/v1
+      kind: Build
+      namespace: ostoy-s2i
+    register: _builds_result
+
+  - name: Set webhook_status if build triggered by webhook
+    set_fact:
+      webhook_status: "success"
+      cacheable: yes
+    when: _builds_result.resources | json_query("[].spec.triggeredBy[?message=='GitHub WebHook'][]") | count > 0
+  when: webhook_status is not defined
 
 - name: Store app task results
   set_fact:
