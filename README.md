@@ -15,23 +15,12 @@ ROSA_AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
 ROSA_AWS_DEFAULT_REGION=$(aws configure get region)
 ```
 
-### Prepare your OCM Credentials
+### Prepare OCM Token
+> If you don't have this saved from creating your cluster, you can get another one here: https://console.redhat.com/openshift/token/rosa/show
 
-> You may need to get this from here instead of following the steps below: https://console.redhat.com/openshift/token/rosa/show
-
-* If you're on Linux, it probably lives here: `cat ~/.config/ocm/ocm.json`
-* If you're on Mac, it probably lives here: `cat ~/Library/Application\ Support/ocm/ocm.json`
-
-Grab the token from there and store it as an environment variable:
 ```bash
-# linux
-ROSA_OCM_TOKEN=$(cat ~/.config/ocm/ocm.json | jq .access_token -r)
-
-# mac
-ROSA_OCM_TOKEN=$(cat ~/Library/Application\ Support/ocm/ocm.json | jq .access_token -r)
-
+ROSA_OCM_TOKEN=<ocm_rosa_token>
 ```
-If you don't have `jq`, just `cat` the file and grab the `access_token` manually.
 
 ### Set your scoreboard server URL
 **You'll need to get the URL from your instructor.**
