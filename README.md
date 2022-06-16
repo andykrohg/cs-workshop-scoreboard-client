@@ -29,6 +29,8 @@ SCOREBOARD_SERVER=<server_url>
 ```
 ### Deploy the app using a template
 ```bash
+oc new-project cs-workshop-scoreboard-client
+
 oc process -f template.yml -p "MY_NAME=$MY_NAME" \
     -p AWS_ACCESS_KEY_ID=$ROSA_AWS_ACCESS_KEY_ID \
     -p AWS_SECRET_ACCESS_KEY=$ROSA_AWS_SECRET_ACCESS_KEY \
