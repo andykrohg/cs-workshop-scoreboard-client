@@ -1,4 +1,4 @@
-# cs-workshop-scoreboard-client
+# Cloud Services Workshop Scoreboard - Client
 This repository houses the client-side component for the **cloud services workshop scoreboard**. It consists of an Ansible playbook that runs continuously to gather workshop task completion data from a participant cluster and report it up to a centralized scoreboard server.
 
 ## Deploy me
@@ -19,11 +19,11 @@ ROSA_AWS_DEFAULT_REGION=$(aws configure get region)
 > If you don't have this saved from creating your cluster, you can get another one here: https://console.redhat.com/openshift/token/rosa/show
 
 ```bash
-ROSA_OCM_TOKEN=<ocm_rosa_token>
+ROSA_OCM_TOKEN=<your_token>
 ```
 
 ### Set your scoreboard server URL
-**You'll need to get the URL from your instructor.**
+**You'll need to get the URL for the [scoreboard server](https://github.com/andykrohg/cs-workshop-scoreboard-server) from your instructor.**
 ```bash
 SCOREBOARD_SERVER=<server_url>
 ```
