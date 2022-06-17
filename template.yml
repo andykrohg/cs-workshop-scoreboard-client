@@ -7,10 +7,6 @@ metadata:
     iconClass: "icon-openshift"
     tags: "workshop"
 objects:
-- apiVersion: v1
-  kind: Namespace
-  metadata:
-    name: cs-workshop-scoreboard-client
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
