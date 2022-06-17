@@ -36,6 +36,8 @@
     namespace: ostoy
     label_selectors:
     - app = ostoy-frontend
+    field_selectors:
+    - status.phase=Running
   register: _frontend_pods
 
 - name: Health check and file usage
@@ -64,7 +66,7 @@
 
   - name: Check for files
     shell: >
-      oc exec -it {{ _frontend_pods.resources[0].metadata.name }} -n ostoy -- ls /var/demo_files
+      oc exec {{ _frontend_pods.resources[0].metadata.name }} -n ostoy -- ls /var/demo_files
     register: _file_check_result
     when: _frontend_pods.resources
 
