@@ -49,6 +49,7 @@
       shell: >
         rosa list users -c {{ cluster_name }}
       register: _user_list
+      ignore_errors: true
 
     - name: Set User fact if they're an admin
       set_fact:
