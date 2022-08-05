@@ -130,6 +130,7 @@
     set_fact:
       s2i_status: "info"
       cacheable: yes
+    when: _s2i_namespace_result.resources
   
   - name: Get ostoy Route
     k8s_info:

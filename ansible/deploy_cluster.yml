@@ -40,7 +40,7 @@
       set_fact:
         idp_status: "success"
         cacheable: yes
-      when: _idp_list.stdout | from_yaml | length > 0
+      when: _idp_list.stdout | from_yaml | length > 1
   when: idp_status is not defined
 
 - name: Get User info
