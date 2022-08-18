@@ -1,6 +1,8 @@
 # Cloud Services Workshop Scoreboard - Client
 This repository houses the client-side component for the **cloud services workshop scoreboard**. It consists of an Ansible playbook that runs continuously to gather workshop task completion data from a participant cluster and report it up to a centralized scoreboard server.
 
+Instructions for completing the workshop can be found at https://www.rosaworkshop.io.
+
 ## Deploy me
 Set an environment variable with your name. This is how you will appear on the workshop scoreboard:
 ```bash
