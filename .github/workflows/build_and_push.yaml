@@ -18,8 +18,6 @@ jobs:
         with:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_PASSWORD }}
-          registry: quay.io
-          repository: akrohg/cs-workshop-scoreboard-client
-          tags: latest
-          add_git_labels: true
+          registry: quay.io/akrohg/cs-workshop-scoreboard-client:latest
+          push: true
           file: Containerfile
