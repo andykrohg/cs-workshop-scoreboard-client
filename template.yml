@@ -25,17 +25,9 @@ objects:
         - env:
           - name: MY_NAME
             value: ${MY_NAME}      
-          - name: AWS_ACCESS_KEY_ID
-            value: ${AWS_ACCESS_KEY_ID}
-          - name: AWS_SECRET_ACCESS_KEY
-            value: ${AWS_SECRET_ACCESS_KEY}
-          - name: AWS_DEFAULT_REGION
-            value: ${AWS_DEFAULT_REGION}
-          - name: ROSA_OCM_TOKEN
-            value: ${ROSA_OCM_TOKEN}
           - name: SCOREBOARD_SERVER
             value: ${SCOREBOARD_SERVER}
-          image: quay.io/akrohg/cs-workshop-scoreboard-client
+          image: quay.io/akrohg/cs-workshop-scoreboard-client:aro
           name: cs-workshop-scoreboard-client
 - kind: ClusterRole
   apiVersion: rbac.authorization.k8s.io/v1
@@ -79,18 +71,6 @@ objects:
 parameters:
 - description: User's name
   name: MY_NAME
-  required: true
-- description: AWS Access Key ID
-  name: AWS_ACCESS_KEY_ID
-  required: true
-- description: AWS Secret Access Key
-  name: AWS_SECRET_ACCESS_KEY
-  required: true
-- description: AWS Default Region
-  name: AWS_DEFAULT_REGION
-  required: true
-- description: OCM Token
-  name: ROSA_OCM_TOKEN
   required: true
 - description: Scoreboard Server URL
   name: SCOREBOARD_SERVER
