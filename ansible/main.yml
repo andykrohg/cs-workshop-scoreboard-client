@@ -16,7 +16,6 @@
       method: PUT
       body:
         attendeeName: "{{ attendee_name }}"
-        clusterTasks: "{{ cluster_tasks }}"
-        appTasks: "{{ app_tasks }}"
+        workshopTasks: "{{ cluster_tasks + app_tasks }}"
       body_format: json
       status_code: 204
