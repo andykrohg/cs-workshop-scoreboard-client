@@ -3,6 +3,8 @@ This repository houses the client-side component for the ARO workshop [scoreboar
 
 Instructions for completing the workshop can be found at https://www.aroworkshop.io.
 
+> If you're looking for the scoreboard client for **ROSA**, go [here](https://github.com/andykrohg/cs-workshop-scoreboard-client/tree/rosa#deploy-me) instead.
+
 ## Deploy me
 Set an environment variable with your name. This is how you will appear on the workshop scoreboard:
 ```bash
