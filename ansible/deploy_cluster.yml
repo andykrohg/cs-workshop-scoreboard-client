@@ -89,9 +89,15 @@
 - name: Store cluster task results
   set_fact:
     cluster_tasks:
-      - success
-      - "{{ idp_status | default('pending') }}"
-      - "{{ user_status | default('pending') }}"
-      - "{{ machinepool_status | default('pending') }}"
-      - "{{ label_status | default('pending') }}"
-      - "{{ autoscaling_status | default('pending') }}"
+      - module: "0"
+        status: success
+      - module: "0"
+        status: "{{ idp_status | default('pending') }}"
+      - module: "0"
+        status: "{{ user_status | default('pending') }}"
+      - module: "0"
+        status: "{{ machinepool_status | default('pending') }}"
+      - module: "0"
+        status: "{{ label_status | default('pending') }}"
+      - module: "0"
+        status: "{{ autoscaling_status | default('pending') }}"
