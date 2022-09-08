@@ -1,0 +1,89 @@
+- name: Get project info
+  block:
+    - name: Check for workshop project
+      k8s_info:
+        kind: Namespace
+        name: workshop
+      register: _workshop_project
+
+    - name: Set project fact if the project exists
+      set_fact:
+        project_status: "success"
+        cacheable: yes
+      when: _workshop_project.resources
+  when: project_status is not defined
+
+- name: Get MongoDB info
+  block:
+    - name: Check for MongoDB Service
+      k8s_info:
+        name: mongodb
+        namespace: workshop
+        kind: Service
+      register: _mongodb_service
+
+    - name: Set MongoDB fact if service exists
+      set_fact:
+        mongodb_status: "success"
+        cacheable: yes
+      when: _mongodb_service.resources
+  when: mongodb_status is not defined
+
+- name: Get Ratings API info
+  block:
+    - name: Check for Ratings API
+      shell: >
+        rosa list users -c {{ cluster_name }}
+      register: _user_list
+      ignore_errors: true
+
+    - name: Set User fact if they're an admin
+      set_fact:
+        user_status: "success"
+        cacheable: yes
+      when: '"cluster-admins" in _user_list.stdout'
+  when: user_status is not defined
+
+# - name: Get Machine pool info
+#   block:
+#     - name: Get MachinePool list
+#       shell: >
+#         rosa list machinepools -c {{ cluster_name }} -o yaml
+#       register: _machinepool_list
+
+#     - name: Set Machinepool fact if they created one besides default
+#       set_fact:
+#         machinepool_status: "success"
+#         cacheable: yes
+#       when: _machinepool_list.stdout | from_yaml | length > 1
+
+#     - name: Set label fact if they applied labels
+#       set_fact:
+#         label_status: "success"
+#         cacheable: yes
+#       when: '"labels" in _machinepool_list.stdout'
+
+#     - name: Set Autoscaling fact if completed
+#       set_fact:
+#         autoscaling_status: "success"
+#         cacheable: yes
+#       when: '"autoscaling" in _machinepool_list.stdout'
+#   when: machinepool_status is not defined or
+#         label_status is not defined or
+#         autoscaling_status is not defined
+
+- name: Store cluster task results
+  set_fact:
+    cluster_tasks:
+      - module: "0"
+        status: success
+      - module: "0"
+        status: "{{ idp_status | default('pending') }}"
+      - module: "0"
+        status: "{{ user_status | default('pending') }}"
+      - module: "0"
+        status: "{{ machinepool_status | default('pending') }}"
+      - module: "0"
+        status: "{{ label_status | default('pending') }}"
+      - module: "0"
+        status: "{{ autoscaling_status | default('pending') }}"

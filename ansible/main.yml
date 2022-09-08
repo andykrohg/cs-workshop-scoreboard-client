@@ -4,11 +4,11 @@
     scoreboard_server: "{{ lookup('env', 'SCOREBOARD_SERVER') }}"
     attendee_name: "{{ lookup('env', 'MY_NAME') }}"
   tasks:
-  - name: Include Cluster Deployment Tasks
-    include_tasks: deploy_cluster.yml
+  - name: Include Lab 1 Tasks
+    include_tasks: go_microservices.yml
 
-  - name: Include App Deployment Tasks
-    include_tasks: deploy_app.yml
+  - name: Include Lab 2 Tasks
+    include_tasks: aro_internals.yml
 
   - name: Post progress report
     uri:
@@ -16,6 +16,6 @@
       method: PUT
       body:
         attendeeName: "{{ attendee_name }}"
-        workshopTasks: "{{ cluster_tasks + app_tasks }}"
+        workshopTasks: "{{ lab1_tasks + lab2_tasks }}"
       body_format: json
       status_code: 204
