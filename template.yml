@@ -35,7 +35,7 @@ objects:
             value: ${ROSA_OCM_TOKEN}
           - name: SCOREBOARD_SERVER
             value: ${SCOREBOARD_SERVER}
-          image: quay.io/akrohg/cs-workshop-scoreboard-client
+          image: quay.io/akrohg/cs-workshop-scoreboard-client:rosa
           name: cs-workshop-scoreboard-client
 - kind: ClusterRole
   apiVersion: rbac.authorization.k8s.io/v1

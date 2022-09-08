@@ -2,7 +2,7 @@ name: Build and push
 on:
   push:
     branches:
-      - main
+      - rosa
 
 jobs:
   build-and-push:
@@ -19,6 +19,6 @@ jobs:
       - name: Build and push container images
         uses: docker/build-push-action@v2
         with:
-          tags: quay.io/akrohg/cs-workshop-scoreboard-client:latest
+          tags: quay.io/akrohg/cs-workshop-scoreboard-client:rosa
           push: true
           file: Containerfile
