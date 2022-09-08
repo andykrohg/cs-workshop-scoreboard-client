@@ -96,78 +96,25 @@
     when: _hpa_result.resources
   when: hpa_status is not defined
 
-- name: Get Logging info
+- name: Check Machine Autoscaler
   block:
-  - name: Check that logging operator is installed
+  - name: Get MachineAutosclaer
     k8s_info:
-      kind: InstallPlan
-      api_version: operators.coreos.com/v1alpha1
-      namespace: openshift-logging
-    register: _install_plan_results
-
-  - name: Give partial credit if installation is in progress
-    set_fact:
-      logging_status: "info"
-    when: _install_plan_results.resources | json_query("[?status.phase=='Installing']") | count > 0
-
-  - name: Give full credit if installation is complete
-    set_fact:
-      logging_status: "success"
-      cacheable: yes
-    when: _install_plan_results.resources | json_query("[?status.phase=='Complete']") | count > 0
-  when: logging_status is undefined or
-        logging_status != 'success'
-
-- name: s2i deployment tasks
-  block:
-  - name: Get s2i namespace
-    k8s_info:
-      kind: Namespace
-      name: ostoy-s2i
-    register: _s2i_namespace_result
-
-  - name: Store credit for namespace creation
-    set_fact:
-      s2i_status: "info"
-      cacheable: yes
-    when: _s2i_namespace_result.resources
+      kind: MachineAutoscaler
+      namespace: openshift-machine-api
+      api_version: autoscaling.openshift.io/v1beta1
+    register: _machine_result
   
-  - name: Get ostoy Route
-    k8s_info:
-      kind: Route
-      api_version: route.openshift.io/v1
-      namespace: ostoy-s2i
-      name: ostoy
-    register: _s2i_route_result
-    
-  - name: Set s2i_status if route exists
+  - name: Set Machine status if created
     set_fact:
-      s2i_status: "success"
+      machine_status: "success"
       cacheable: yes
-    when: _s2i_route_result.resources
-  when: s2i_status is not defined or
-        s2i_status != 'success'
-
-# TODO Webhook check
-- name: Get Webhook info
-  block:
-  - name: Get builds
-    k8s_info:
-      api_version: build.openshift.io/v1
-      kind: Build
-      namespace: ostoy-s2i
-    register: _builds_result
-
-  - name: Set webhook_status if build triggered by webhook
-    set_fact:
-      webhook_status: "success"
-      cacheable: yes
-    when: _builds_result.resources | json_query("[].spec.triggeredBy[?message=='GitHub WebHook'][]") | count > 0
-  when: webhook_status is not defined
+    when: _machine_result.resources
+  when: machine_status is not defined
 
 - name: Store app task results
   set_fact:
-    app_tasks:
+    lab2_tasks:
       - module: "1"
         status: "{{ backend_status | default('pending') }}"
       - module: "1"
@@ -179,8 +126,4 @@
       - module: "1"
         status: "{{ hpa_status | default('pending') }}"
       - module: "1"
-        status: "{{ logging_status | default('pending') }}"
-      - module: "1"
-        status: "{{ s2i_status | default('pending') }}"
-      - module: "1"
-        status: "{{ webhook_status | default('pending') }}"
+        status: "{{ machine_status | default('pending') }}"
