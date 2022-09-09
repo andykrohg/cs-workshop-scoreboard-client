@@ -1,9 +1,7 @@
 # ARO Workshop Scoreboard - Client
-This repository houses the client-side component for the ARO workshop [scoreboard server](https://github.com/andykrohg/cs-workshop-scoreboard-server/tree/aro). It consists of an Ansible playbook that runs continuously to gather workshop task completion data from a participant cluster and report it up to a centralized scoreboard server.
+This repository houses the client-side component for the **ARO workshop scoreboard**. It consists of an Ansible playbook that runs continuously to gather workshop task completion data from a participant cluster and report it up to a centralized [scoreboard server](https://github.com/andykrohg/cs-workshop-scoreboard-server/tree/aro).
 
-Instructions for completing the workshop can be found at https://aroworkshop.io.
-
-> If you're looking for the scoreboard client for **ROSA**, go [here](https://github.com/andykrohg/cs-workshop-scoreboard-client/tree/rosa#deploy-me) instead.
+> If you're looking for the scoreboard client for **ROSA**, go [here](https://github.com/andykrohg/cs-workshop-scoreboard-client/tree/rosa) instead.
 
 ## Deploy me
 Set an environment variable with your name. This is how you will appear on the workshop scoreboard:
@@ -25,3 +23,4 @@ oc process -f https://raw.githubusercontent.com/andykrohg/cs-workshop-scoreboard
     -p SCOREBOARD_SERVER=$SCOREBOARD_SERVER | oc apply -f -
 ```
 
+You're all set! In a moment, the scoreboard should display your name and start tracking your progress. Head over to the [workshop guide](https://aroworkshop.io) to get started.
