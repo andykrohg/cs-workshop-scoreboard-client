@@ -24,3 +24,6 @@ oc process -f https://raw.githubusercontent.com/andykrohg/cs-workshop-scoreboard
 ```
 
 You're all set! In a moment, the scoreboard should display your name and start tracking your progress. Head over to the [workshop guide](https://aroworkshop.io) to get started. We've already deployed your cluster, so start with the **Create Project** step in **Lab 1**.
+
+## Want to build a scoreboard client for a different workshop?
+Check out the development guide [here](DEVELOPMENT.md).
