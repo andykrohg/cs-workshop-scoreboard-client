@@ -1,7 +1,5 @@
 # ROSA Workshop Scoreboard - Client
-This repository houses the client-side component for the ROSA workshop [scoreboard](https://github.com/andykrohg/cs-workshop-scoreboard-server/tree/rosa). It consists of an Ansible playbook that runs continuously to gather workshop task completion data from a participant cluster and report it up to a centralized scoreboard server.
-
-Instructions for completing the workshop can be found at https://www.rosaworkshop.io.
+This repository houses the client-side component for the **ROSA workshop scoreboard**. It consists of an Ansible playbook that runs continuously to gather workshop task completion data from a participant cluster and report it up to a centralized [scoreboard server](https://github.com/andykrohg/cs-workshop-scoreboard-server/tree/rosa).
 
 > If you're looking for the scoreboard client for **ARO**, go [here](https://github.com/andykrohg/cs-workshop-scoreboard-client/tree/aro) instead.
 
@@ -44,3 +42,4 @@ oc process -f https://raw.githubusercontent.com/andykrohg/cs-workshop-scoreboard
     -p SCOREBOARD_SERVER=$SCOREBOARD_SERVER | oc apply -f -
 ```
 
+You're all set! In a moment, the scoreboard should display your name and start tracking your progress. Head over to the [workshop guide](https://www.rosaworkshop.io/rosa/4-setup_idp/) to get started.
