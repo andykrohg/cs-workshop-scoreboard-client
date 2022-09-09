@@ -43,3 +43,6 @@ oc process -f https://raw.githubusercontent.com/andykrohg/cs-workshop-scoreboard
 ```
 
 You're all set! In a moment, the scoreboard should display your name and start tracking your progress. Head over to the [workshop guide](https://www.rosaworkshop.io/rosa/4-setup_idp/) to get started.
+
+## Want to build a scoreboard client for a different workshop?
+Check out the development guide [here](DEVELOPMENT.md).
