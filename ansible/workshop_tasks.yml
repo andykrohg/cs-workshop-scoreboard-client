@@ -1,7 +1,39 @@
+- name: Get parksmap deployments
+  k8s_info:
+    kind: Deployment
+    label_selectors:
+      - component = parksmap
+      - app = workshop
+      - role = frontend
+  register: first_container_result
 
+- name: Get first_container_statuses
+  ansible.builtin.debug:
+    msg: todo
 
+- name: Get scaling_statuses
+  ansible.builtin.debug:
+    msg: todo
+
+# Need to build full dictionary here that looks like this:
+# [
+#   {
+#      attendeeName: "user1",
+#      workshopTasks: [
+#        {
+#          module: "0"
+#          status: "success"
+#        }
+#       ...
+#      ]
+#   }
+#    ...
+# ]
+#
+# So we're basically uploading attendee statuses in bulk. This will require a new endpoint on the server.
+#
 - name: Store workshop task results
-  set_fact:
+  ansible.builtin.set_fact:
     workshop_tasks:
       - module: "0"
         status: "{{ first_container_status | default('pending') }}"

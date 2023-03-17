@@ -1,18 +1,20 @@
-- hosts: localhost
+- name: Scoreboard Client
+  hosts: localhost
   gather_facts: false
   vars:
     scoreboard_server: "{{ lookup('env', 'SCOREBOARD_SERVER') }}"
     attendee_name: "{{ lookup('env', 'MY_NAME') }}"
   tasks:
-  - name: Include Workshop Tasks
-    include_tasks: workshop_tasks.yml
+    - name: Include Workshop Tasks
+      ansible.builtin.include_tasks: workshop_tasks.yml
 
-  - name: Post progress report
-    uri:
-      url: "{{ scoreboard_server }}/progress-reports"
-      method: PUT
-      body:
-        attendeeName: "{{ attendee_name }}"
-        workshopTasks: "{{ workshop_tasks }}"
-      body_format: json
-      status_code: 204
+    # TODO: use the full status object here, requires server side change
+    - name: Post progress report
+      ansible.builtin.uri:
+        url: "{{ scoreboard_server }}/progress-reports"
+        method: PUT
+        body:
+          attendeeName: "{{ attendee_name }}"
+          workshopTasks: "{{ workshop_tasks }}"
+        body_format: json
+        status_code: 204
