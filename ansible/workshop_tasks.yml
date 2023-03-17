@@ -1,0 +1,27 @@
+
+
+- name: Store workshop task results
+  set_fact:
+    workshop_tasks:
+      - module: "0"
+        status: "{{ first_container_status | default('pending') }}"
+      - module: "0"
+        status: "{{ scaling_status | default('pending') }}"
+      - module: "0"
+        status: "{{ expose_status | default('pending') }}"
+      - module: "0"
+        status: "{{ rbac_status | default('pending') }}"
+      - module: "0"
+        status: "{{ deploy_code_status | default('pending') }}"
+      - module: "0"
+        status: "{{ database_status | default('pending') }}"
+      - module: "0"
+        status: "{{ probe_status | default('pending') }}"
+      - module: "0"
+        status: "{{ pipeline_status | default('pending') }}"
+      - module: "0"
+        status: "{{ webhook_status | default('pending') }}"
+      - module: "0"
+        status: "{{ template_status | default('pending') }}"
+      - module: "0"
+        status: "{{ binary_status | default('pending') }}"
