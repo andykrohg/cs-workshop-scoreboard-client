@@ -70,12 +70,49 @@
   ansible.builtin.set_fact:
     completed_health_checks: "{{ nationalparks_deployments | json_query('resources[?spec.template.spec.containers[0].readinessProbe].metadata.namespace') }}"
 
-# TODO: Get the rest of the data
-- ansible.builtin.set_fact:
-    completed_pipeline: []
-    completed_webhook: []
-    completed_template: []
-    completed_binary: []
+- name: Get pipeline runs
+  k8s_info:
+    kind: PipelineRun
+    api_version: tekton.dev/v1beta1
+    label_selectors:
+      - tekton.dev/pipeline = nationalparks-pipeline
+  register: pipeline_runs
+
+- name: Get participants who have completed a pipeline run
+  ansible.builtin.set_fact:
+    completed_pipeline: "{{ pipeline_runs | json_query(\"resources[?status.conditions[0].reason=='Succeeded'].metadata.namespace\") | unique }}"
+
+- name: Get participants who have setup their webhook properly
+  ansible.builtin.set_fact:
+    completed_webhook: "{{ pipeline_runs | json_query(query_string) | unique }}"
+  vars:
+      query_string: resources[?metadata.labels."triggers.tekton.dev/eventlistener"=='nationalparks'].metadata.namespace
+
+- name: Get mlbparks deploymentconfigs
+  k8s_info:
+    kind: DeploymentConfig
+    api_version: apps.openshift.io/v1
+    label_selectors:
+      - component = mlbparks
+      - app = workshop
+      - role = backend
+  register: mlbparks_deployment_configs
+
+- name: Get participants who completed their mlbparks deployments
+  ansible.builtin.set_fact:
+    completed_template: "{{ mlbparks_deployment_configs | json_query('resources[*].metadata.namespace') }}"
+
+- name: Get mlbparks builds
+  k8s_info:
+    kind: Build
+    api_version: build.openshift.io/v1
+    label_selectors:
+      - buildconfig = mlbparks
+  register: mlbparks_builds
+
+- name: Get participants who completed a binary build
+  ansible.builtin.set_fact:
+    completed_binary: "{{ mlbparks_builds | json_query(\"resources[?spec.source.type=='Binary' && status.phase=='Complete'].metadata.namespace\") }}" 
 
 - name: Store workshop task results
   ansible.builtin.set_fact:
