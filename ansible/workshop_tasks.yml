@@ -5,55 +5,104 @@
       - component = parksmap
       - app = workshop
       - role = frontend
-  register: first_container_result
+  register: parksmap_deployments
 
-- name: Get first_container_statuses
-  ansible.builtin.debug:
-    msg: todo
+- name: Get participants who completed first container
+  ansible.builtin.set_fact:
+    completed_first_container: "{{ parksmap_deployments | json_query('resources[*].metadata.namespace') }}"
 
-- name: Get scaling_statuses
-  ansible.builtin.debug:
-    msg: todo
+- name: Get participants who completed scaling
+  ansible.builtin.set_fact:
+    completed_scaling: "{{ parksmap_deployments | json_query('resources[?(metadata.generation>=`3`)].metadata.namespace') }}"
 
-# Need to build full dictionary here that looks like this:
-# [
-#   {
-#      attendeeName: "user1",
-#      workshopTasks: [
-#        {
-#          module: "0"
-#          status: "success"
-#        }
-#       ...
-#      ]
-#   }
-#    ...
-# ]
-#
-# So we're basically uploading attendee statuses in bulk. This will require a new endpoint on the server.
-#
+- name: Get parksmap routes
+  k8s_info:
+    kind: Route
+    api_version: route.openshift.io/v1
+    label_selectors:
+      - component = parksmap
+      - app = workshop
+      - role = frontend
+  register: parksmap_routes
+
+- name: Get participants who have exposed their application to the outside world
+  ansible.builtin.set_fact:
+    completed_expose: "{{ parksmap_routes | json_query('resources[*].metadata.namespace') }}"
+
+- name: Get RoleBindings
+  k8s_info:
+    kind: RoleBinding
+    api_version: rbac.authorization.k8s.io/v1
+  register: role_bindings
+
+- name: Get participants who have granted view access to their default service account
+  ansible.builtin.set_fact:
+    completed_rbac: "{{ role_bindings | json_query(\"resources[?metadata.name=='view'].metadata.namespace\")}}"
+
+- name: Get nationalparks Deployments
+  k8s_info:
+    kind: Deployment
+    label_selectors:
+      - component = nationalparks
+      - app = workshop
+      - role = backend
+  register: nationalparks_deployments
+
+- name: Get participants who completed deploy code
+  ansible.builtin.set_fact:
+    completed_deploy_code: "{{ nationalparks_deployments | json_query('resources[*].metadata.namespace') }}"
+
+- name: Get MongoDB deployment configs
+  k8s_info:
+    kind: DeploymentConfig
+    api_version: apps.openshift.io/v1
+    label_selectors:
+      - component = nationalparks
+      - app = workshop
+      - role = database
+  register: mongodb_deployment_configs
+
+- name: Get participants who have deployed their database
+  ansible.builtin.set_fact:
+    completed_database: "{{ mongodb_deployment_configs | json_query('resources[*].metadata.namespace') }}"
+
+- name: Get participants who have added health checks to nationalparks
+  ansible.builtin.set_fact:
+    completed_health_checks: "{{ nationalparks_deployments | json_query('resources[?spec.template.spec.containers[0].readinessProbe].metadata.namespace') }}"
+
+# TODO: Get the rest of the data
+- ansible.builtin.set_fact:
+    completed_pipeline: []
+    completed_webhook: []
+    completed_template: []
+    completed_binary: []
+
 - name: Store workshop task results
   ansible.builtin.set_fact:
-    workshop_tasks:
-      - module: "0"
-        status: "{{ first_container_status | default('pending') }}"
-      - module: "0"
-        status: "{{ scaling_status | default('pending') }}"
-      - module: "0"
-        status: "{{ expose_status | default('pending') }}"
-      - module: "0"
-        status: "{{ rbac_status | default('pending') }}"
-      - module: "0"
-        status: "{{ deploy_code_status | default('pending') }}"
-      - module: "0"
-        status: "{{ database_status | default('pending') }}"
-      - module: "0"
-        status: "{{ probe_status | default('pending') }}"
-      - module: "0"
-        status: "{{ pipeline_status | default('pending') }}"
-      - module: "0"
-        status: "{{ webhook_status | default('pending') }}"
-      - module: "0"
-        status: "{{ template_status | default('pending') }}"
-      - module: "0"
-        status: "{{ binary_status | default('pending') }}"
+    user_completion_data: |
+      {%- for username in lookup("sequence", "1-" + number_of_users + ":user%i", wantlist=True) %}
+        - attendeeName: {{ username }}
+          workshopTasks:
+            - module: "0"
+              status: {{ (username in completed_first_container) | ternary('success', 'pending') }}
+            - module: "0"
+              status: {{ (username in completed_scaling) | ternary('success', 'pending') }}
+            - module: "0"
+              status: {{ (username in completed_expose) | ternary('success', 'pending') }}
+            - module: "0"
+              status: {{ (username in completed_rbac) | ternary('success', 'pending') }}
+            - module: "0"
+              status: {{ (username in completed_deploy_code) | ternary('success', 'pending') }}
+            - module: "0"
+              status: {{ (username in completed_database) | ternary('success', 'pending') }}
+            - module: "0"
+              status: {{ (username in completed_health_checks) | ternary('success', 'pending') }}
+            - module: "0"
+              status: {{ (username in completed_pipeline) | ternary('success', 'pending') }}
+            - module: "0"
+              status: {{ (username in completed_webhook) | ternary('success', 'pending') }}
+            - module: "0"
+              status: {{ (username in completed_template) | ternary('success', 'pending') }}
+            - module: "0"
+              status: {{ (username in completed_binary) | ternary('success', 'pending') }}
+      {% endfor -%}

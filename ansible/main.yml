@@ -3,7 +3,7 @@
   gather_facts: false
   vars:
     scoreboard_server: "{{ lookup('env', 'SCOREBOARD_SERVER') }}"
-    attendee_name: "{{ lookup('env', 'MY_NAME') }}"
+    number_of_users: "1"
   tasks:
     - name: Include Workshop Tasks
       ansible.builtin.include_tasks: workshop_tasks.yml
@@ -13,8 +13,6 @@
       ansible.builtin.uri:
         url: "{{ scoreboard_server }}/progress-reports"
         method: PUT
-        body:
-          attendeeName: "{{ attendee_name }}"
-          workshopTasks: "{{ workshop_tasks }}"
+        body: "{{ user_completion_data | from_yaml }}"
         body_format: json
         status_code: 204
