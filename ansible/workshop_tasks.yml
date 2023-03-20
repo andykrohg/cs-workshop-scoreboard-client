@@ -114,11 +114,28 @@
   ansible.builtin.set_fact:
     completed_binary: "{{ mlbparks_builds | json_query(\"resources[?spec.source.type=='Binary' && status.phase=='Complete'].metadata.namespace\") }}" 
 
+- name: Get username configmaps
+  k8s_info:
+    kind: ConfigMap
+    label_selectors:
+      - ocp4 = getting-started
+  register: username_configmaps
+
+- name: Set username overrides
+  ansible.builtin.set_fact:
+    username_overrides: |
+      {
+        {%- for configmap in username_configmaps.resources %}
+          {{ configmap.metadata.namespace }}: {{ configmap.data.name | default(omit) }}
+        {% endfor -%}
+      }
+
 - name: Store workshop task results
   ansible.builtin.set_fact:
     user_completion_data: |
       {%- for username in lookup("sequence", "1-" + number_of_users + ":user%i", wantlist=True) %}
         - attendeeName: {{ username }}
+          displayName: {{ (username_overrides | from_yaml)[username] | default(omit) }}
           workshopTasks:
             - module: "0"
               status: {{ (username in completed_first_container) | ternary('success', 'pending') }}
