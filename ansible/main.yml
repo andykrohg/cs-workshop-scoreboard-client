@@ -3,7 +3,7 @@
   gather_facts: false
   vars:
     scoreboard_server: "{{ lookup('env', 'SCOREBOARD_SERVER') }}"
-    number_of_users: "1"
+    number_of_users: "{{ lookup('env', 'NUMBER_OF_USERS') }}"
   tasks:
     - name: Include Workshop Tasks
       ansible.builtin.include_tasks: workshop_tasks.yml

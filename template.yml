@@ -22,36 +22,13 @@ objects:
           app: cs-workshop-scoreboard-client
       spec:
         containers:
-        - env:
-          - name: MY_NAME
-            value: ${MY_NAME}      
-          - name: AWS_ACCESS_KEY_ID
-            value: ${AWS_ACCESS_KEY_ID}
-          - name: AWS_SECRET_ACCESS_KEY
-            value: ${AWS_SECRET_ACCESS_KEY}
-          - name: AWS_DEFAULT_REGION
-            value: ${AWS_DEFAULT_REGION}
-          - name: ROSA_OCM_TOKEN
-            value: ${ROSA_OCM_TOKEN}
+        - env:  
+          - name: NUMBER_OF_USERS
+            value: ${NUMBER_OF_USERS}
           - name: SCOREBOARD_SERVER
             value: ${SCOREBOARD_SERVER}
-          image: quay.io/akrohg/cs-workshop-scoreboard-client:rosa
+          image: quay.io/akrohg/cs-workshop-scoreboard-client:ocp4-getting-started
           name: cs-workshop-scoreboard-client
-- kind: ClusterRole
-  apiVersion: rbac.authorization.k8s.io/v1
-  metadata:
-    name: cluster-pod-view-exec
-  rules:
-    - verbs:
-        - get
-        - watch
-        - list
-        - create
-      apiGroups:
-        - ''
-      resources:
-        - pods
-        - pods/exec
 - kind: ClusterRoleBinding
   apiVersion: rbac.authorization.k8s.io/v1
   metadata:
@@ -64,33 +41,9 @@ objects:
     apiGroup: rbac.authorization.k8s.io
     kind: ClusterRole
     name: view
-- kind: ClusterRoleBinding
-  apiVersion: rbac.authorization.k8s.io/v1
-  metadata:
-    name: scoreboard-client-pod-view-exec
-  subjects:
-    - kind: ServiceAccount
-      name: default
-      namespace: cs-workshop-scoreboard-client
-  roleRef:
-    apiGroup: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: cluster-pod-view-exec
 parameters:
-- description: User's name
-  name: MY_NAME
-  required: true
-- description: AWS Access Key ID
-  name: AWS_ACCESS_KEY_ID
-  required: true
-- description: AWS Secret Access Key
-  name: AWS_SECRET_ACCESS_KEY
-  required: true
-- description: AWS Default Region
-  name: AWS_DEFAULT_REGION
-  required: true
-- description: OCM Token
-  name: ROSA_OCM_TOKEN
+- description: Number of users
+  name: NUMBER_OF_USERS
   required: true
 - description: Scoreboard Server URL
   name: SCOREBOARD_SERVER
