@@ -32,7 +32,7 @@ objects:
 - kind: ClusterRoleBinding
   apiVersion: rbac.authorization.k8s.io/v1
   metadata:
-    name: scoreboard-client-view
+    name: scoreboard-client-admin
   subjects:
     - kind: ServiceAccount
       name: default
@@ -40,7 +40,7 @@ objects:
   roleRef:
     apiGroup: rbac.authorization.k8s.io
     kind: ClusterRole
-    name: view
+    name: admin
 parameters:
 - description: Number of users
   name: NUMBER_OF_USERS
