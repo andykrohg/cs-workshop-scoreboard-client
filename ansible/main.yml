@@ -1,14 +1,11 @@
-- hosts: localhost
+- hosts: all
   gather_facts: false
   vars:
     scoreboard_server: "{{ lookup('env', 'SCOREBOARD_SERVER') }}"
     attendee_name: "{{ lookup('env', 'MY_NAME') }}"
   tasks:
-  - name: Include Lab 1 Tasks
-    include_tasks: go_microservices.yml
-
-  - name: Include Lab 2 Tasks
-    include_tasks: aro_internals.yml
+  - name: Include Workshop Modules
+    include_tasks: workshop_modules.yml
 
   - name: Post progress report
     uri:
@@ -16,6 +13,7 @@
       method: PUT
       body:
         attendeeName: "{{ attendee_name }}"
-        workshopTasks: "{{ lab1_tasks + lab2_tasks }}"
+        workshopTasks: "{{ workshop_tasks }}"
       body_format: json
       status_code: 204
+    delegate_to: localhost

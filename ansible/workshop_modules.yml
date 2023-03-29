@@ -1,0 +1,56 @@
+- name: Get GUID
+  shell: hostname | cut -f 2 -d '.'
+  register: guid_output
+
+- name: Set GUID fact
+  set_fact:
+    guid: "{{ guid_output.stdout }}"
+
+- name: Get node1 registry status
+  uri:
+    url: "https://node1.{{ guid }}.internal:5000/v2/_catalog"
+    user: redhat
+    password: redhat
+    validate_certs: no
+  ignore_errors: yes
+  register: node1_registry
+
+- name: Get node2 registry status
+  uri:
+    url: "https://node2.{{ guid }}.internal:5000/v2/_catalog"
+    user: redhat
+    password: redhat
+    validate_certs: no
+  ignore_errors: yes
+  register: node2_registry
+
+- name: Give partial credit for registry
+  set_fact:
+    registry_status: info
+  when: "node1_registry.status == 200 or node2_registry.status == 200"
+
+- name: Give full credit for registry
+  set_fact:
+    registry_status: success
+  when: "node1_registry.status == 200 and node2_registry.status == 200"
+
+- debug:
+    msg: "{{ node2_registry }}"
+
+- name: Store workshop modules results
+  set_fact:
+    workshop_tasks:
+      - module: "0"
+        status: "{{ registry_status | default('pending') }}"
+      - module: "0"
+        status: "{{ podman_status | default('pending') }}"
+      - module: "0"
+        status: "{{ isolation_status | default('pending') }}"
+      - module: "0"
+        status: "{{ selinux_status | default('pending') }}"
+      - module: "0"
+        status: "{{ inspecting_status | default('pending') }}"
+      - module: "0"
+        status: "{{ podman_api_status | default('pending') }}"
+      - module: "0"
+        status: "{{ secure_builds_status | default('pending') }}"
