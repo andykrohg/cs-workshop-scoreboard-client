@@ -2,10 +2,13 @@
   gather_facts: false
   vars:
     scoreboard_server: "{{ lookup('env', 'SCOREBOARD_SERVER') }}"
-    attendee_name: "{{ lookup('env', 'MY_NAME') }}"
   tasks:
   - name: Include Workshop Modules
     include_tasks: workshop_modules.yml
+
+  - name: Set Attendee name
+    set_fact:
+      attendee_name: "{{ lookup('env', 'MY_NAME') | default(guid)}}"
 
   - name: Post progress report
     uri:

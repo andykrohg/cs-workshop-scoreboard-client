@@ -34,8 +34,71 @@
     registry_status: success
   when: "node1_registry.status == 200 and node2_registry.status == 200"
 
-- debug:
-    msg: "{{ node2_registry }}"
+- name: Give credit for push_image
+  set_fact:
+    push_image_status: success
+  when: "(node1_registry.json.repositories | length) > 0"
+  ignore_errors: yes
+
+- name: Get root's running containers
+  containers.podman.podman_container_info:
+  become: yes
+  register: root_running_containers
+
+- name: Get lab-user's running containers
+  containers.podman.podman_container_info:
+  register: labuser_running_containers
+
+- name: Give credit for effective user
+  set_fact:
+    effective_user_status: "{{ ((root_running_containers.containers | json_query(\"[?Config.User == '1001' && HostConfig.IDMappings.UidMap[0] == '0:200000:5000']\") | length) > 0) | ternary('success', omit) }}"
+  ignore_errors: yes
+
+- name: Give partial credit for linux capabilities (challenge 2)
+  set_fact:
+    linux_cap_status: "{{ ((root_running_containers.containers | json_query(\"[?contains(BoundingCaps, 'CAP_SYS_TIME')]\") | length) > 0) | ternary('info', omit) }}"
+  when: "linux_cap_status is not defined"
+  ignore_errors: yes
+
+- name: Give full credit for linux capabilities (challenge 3)
+  set_fact:
+    linux_cap_status: "{{ ((root_running_containers.containers | json_query(\"[?contains(BoundingCaps, 'CAP_LINUX_IMMUTABLE') && !contains(BoundingCaps, 'CAP_CHOWN')]\") | length) > 0) | ternary('success', 'info') }}"
+  when: "linux_cap_status is defined and linux_cap_status == 'info'"
+  ignore_errors: yes
+
+- name: Give partial credit for SELinux (warm up exercise)
+  set_fact:
+    selinux_status: "{{ ((root_running_containers.containers | json_query(\"[?Mounts[?Destination=='/sys/fs/selinux' && Source=='/sys/fs/selinux']]\") | length) > 0) | ternary('info', omit) }}"
+  when: "selinux_status is not defined"
+  ignore_errors: yes
+
+- name: Give full credit for SELinux (read only containers)
+  set_fact:
+    selinux_status: "{{ ((labuser_running_containers.containers | json_query(\"[?HostConfig.ReadonlyRootfs]\") | length) > 0) | ternary('success', 'info') }}"
+  when: "selinux_status is defined and selinux_status == 'info'"
+  ignore_errors: yes
+
+- name: Check for podman live mount
+  shell: find /var/lib/containers -name date.txt
+  become: yes
+  register: live_mount_output
+
+- name: Give credit for inspecting (podman live mounts)
+  set_fact:
+    inspecting_status: "{{ ((live_mount_output.stdout_lines | length) > 0) | ternary('success', omit) }}"
+  ignore_errors: yes
+
+- name: Give credit for podman api
+  set_fact:
+    podman_api_status: "{{ ((root_running_containers.containers | json_query(query) | length) > 0) | ternary('success', omit) }}"
+  ignore_errors: yes
+  vars:
+    query: "[?Config.Labels.\"com.docker.compose.service\"=='hello']"
+
+- name: Give credit for secure builds
+  set_fact:
+    secure_builds_status: "{{ ((labuser_running_containers.containers | json_query(\"[?Config.Image=='localhost/buildahbuddemo:latest']\") | length) > 0) | ternary('success', omit) }}"
+  ignore_errors: yes
 
 - name: Store workshop modules results
   set_fact:
@@ -43,9 +106,11 @@
       - module: "0"
         status: "{{ registry_status | default('pending') }}"
       - module: "0"
-        status: "{{ podman_status | default('pending') }}"
+        status: "{{ push_image_status | default('pending') }}"
       - module: "0"
-        status: "{{ isolation_status | default('pending') }}"
+        status: "{{ effective_user_status | default('pending') }}"
+      - module: "0"
+        status: "{{ linux_cap_status | default('pending') }}"
       - module: "0"
         status: "{{ selinux_status | default('pending') }}"
       - module: "0"
