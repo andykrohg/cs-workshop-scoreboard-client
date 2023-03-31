@@ -14,6 +14,7 @@
     validate_certs: no
   ignore_errors: yes
   register: node1_registry
+  when: "registry_status is not defined or registry_status != 'success' or push_image_status is not defined" 
 
 - name: Get node2 registry status
   uri:
@@ -23,22 +24,27 @@
     validate_certs: no
   ignore_errors: yes
   register: node2_registry
+  when: "registry_status is not defined or registry_status != 'success'"
 
 - name: Give partial credit for registry
   set_fact:
     registry_status: info
-  when: "node1_registry.status == 200 or node2_registry.status == 200"
+    cacheable: yes
+  when: "registry_status is not defined or registry_status != 'success' and (node1_registry.status == 200 or node2_registry.status == 200)"
 
 - name: Give full credit for registry
   set_fact:
     registry_status: success
-  when: "node1_registry.status == 200 and node2_registry.status == 200"
+    cacheable: yes
+  when: "registry_status is not defined or registry_status != 'success' and (node1_registry.status == 200 and node2_registry.status == 200)"
 
 - name: Give credit for push_image
   set_fact:
     push_image_status: success
+    cacheable: yes
   when: "(node1_registry.json.repositories | length) > 0"
   ignore_errors: yes
+  when: "push_image_status is not defined or push_image_status != 'success'"
 
 - name: Get root's running containers
   containers.podman.podman_container_info:
@@ -52,29 +58,35 @@
 - name: Give credit for effective user
   set_fact:
     effective_user_status: "{{ ((root_running_containers.containers | json_query(\"[?Config.User == '1001' && HostConfig.IDMappings.UidMap[0] == '0:200000:5000']\") | length) > 0) | ternary('success', omit) }}"
+    cacheable: yes
   ignore_errors: yes
+  when: "effective_user_status is not defined"
 
 - name: Give partial credit for linux capabilities (challenge 2)
   set_fact:
     linux_cap_status: "{{ ((root_running_containers.containers | json_query(\"[?contains(BoundingCaps, 'CAP_SYS_TIME')]\") | length) > 0) | ternary('info', omit) }}"
+    cacheable: yes
   when: "linux_cap_status is not defined"
   ignore_errors: yes
 
 - name: Give full credit for linux capabilities (challenge 3)
   set_fact:
     linux_cap_status: "{{ ((root_running_containers.containers | json_query(\"[?contains(BoundingCaps, 'CAP_LINUX_IMMUTABLE') && !contains(BoundingCaps, 'CAP_CHOWN')]\") | length) > 0) | ternary('success', 'info') }}"
+    cacheable: yes
   when: "linux_cap_status is defined and linux_cap_status == 'info'"
   ignore_errors: yes
 
 - name: Give partial credit for SELinux (warm up exercise)
   set_fact:
     selinux_status: "{{ ((root_running_containers.containers | json_query(\"[?Mounts[?Destination=='/sys/fs/selinux' && Source=='/sys/fs/selinux']]\") | length) > 0) | ternary('info', omit) }}"
+    cacheable: yes
   when: "selinux_status is not defined"
   ignore_errors: yes
 
 - name: Give full credit for SELinux (read only containers)
   set_fact:
     selinux_status: "{{ ((labuser_running_containers.containers | json_query(\"[?HostConfig.ReadonlyRootfs]\") | length) > 0) | ternary('success', 'info') }}"
+    cacheable: yes
   when: "selinux_status is defined and selinux_status == 'info'"
   ignore_errors: yes
 
@@ -86,19 +98,25 @@
 - name: Give credit for inspecting (podman live mounts)
   set_fact:
     inspecting_status: "{{ ((live_mount_output.stdout_lines | length) > 0) | ternary('success', omit) }}"
+    cacheable: yes
   ignore_errors: yes
+  when: "inspecting_status is not defined"
 
 - name: Give credit for podman api
   set_fact:
     podman_api_status: "{{ ((root_running_containers.containers | json_query(query) | length) > 0) | ternary('success', omit) }}"
+    cacheable: yes
   ignore_errors: yes
   vars:
     query: "[?Config.Labels.\"com.docker.compose.service\"=='hello']"
+  when: "podman_api_status is not defined"
 
 - name: Give credit for secure builds
   set_fact:
     secure_builds_status: "{{ ((labuser_running_containers.containers | json_query(\"[?Config.Image=='localhost/buildahbuddemo:latest']\") | length) > 0) | ternary('success', omit) }}"
+    cacheable: yes
   ignore_errors: yes
+  when: "secure_builds_status is not defined"
 
 - name: Store workshop modules results
   set_fact:
