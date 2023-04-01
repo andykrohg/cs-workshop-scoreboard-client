@@ -19,7 +19,7 @@ export SCOREBOARD_SERVER=<server_url>
 ./loop.sh > ./client.log 2>&1 &
 ```
 
-You're all set! In a moment, the scoreboard should display your GUID and start tracking your progress. Head over to the to your labguide dashboard to get started.
+You're all set! In a moment, the scoreboard should display your GUID and start tracking your progress. Head over to your labguide dashboard to get started.
 
 ## Want to build a scoreboard client for a different workshop?
 Check out the development guide [here](DEVELOPMENT.md).
