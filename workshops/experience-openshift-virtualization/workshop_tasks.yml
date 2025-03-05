@@ -62,13 +62,13 @@
   vars:
     restore_query: resources[?status.phase=='Completed'].metadata.namespace
 
-- name: Get Templates
-  k8s_info:
-    api_version: template.openshift.io/v1
-    kind: Template
-    label_selectors:
-      - vm.kubevirt.io/template = centos-stream9-server-small
-  resources: templates
+# - name: Get Templates
+#   k8s_info:
+#     api_version: template.openshift.io/v1
+#     kind: Template
+#     label_selectors:
+#       - vm.kubevirt.io/template = centos-stream9-server-small
+#   resources: templates
 
 # - name: Get username configmaps
 #   k8s_info:
