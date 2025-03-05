@@ -24,7 +24,7 @@
 - name: Get participants who have started or completed live migration
   ansible.builtin.set_fact:
     created_migration_plan: "{{ migration_plans | json_query('resources[*].metadata.namespace') }}"
-    completed_migration_plan: []
+    completed_migration_plan: "{{ migration_plans | json_query('resources[?status.migration.completed].metadata.namespace')}}"
 
 - name: Get VM Snapshots
   k8s_info:
@@ -62,36 +62,50 @@
   vars:
     restore_query: resources[?status.phase=='Completed'].metadata.namespace
 
-# - name: Get Templates
-#   k8s_info:
-#     api_version: template.openshift.io/v1
-#     kind: Template
-#     label_selectors:
-#       - vm.kubevirt.io/template = centos-stream9-server-small
-#   resources: templates
+- name: Get Templates
+  k8s_info:
+    api_version: template.openshift.io/v1
+    kind: Template
+    label_selectors:
+      - vm.kubevirt.io/template = centos-stream9-server-small
+  register: templates
 
-# - name: Get username configmaps
-#   k8s_info:
-#     kind: ConfigMap
-#     label_selectors:
-#       - ocp4 = getting-started
-#   register: username_configmaps
+- name: Get participants who have started or completed template and instance type management
+  ansible.builtin.set_fact:
+    started_template_instance: "{{ templates | json_query('resources[*].metadata.namespace') }}"
+    completed_template_instance: "{{ vms | json_query(vm_query) }}"
+  vars:
+    vm_query: resources[?spec.instancetype.name=='u1.medium'].metadata.namespace
 
-# - name: Set username overrides
-#   ansible.builtin.set_fact:
-#     username_overrides: |
-#       {
-#         {%- for configmap in username_configmaps.resources %}
-#           {{ configmap.metadata.namespace }}: {{ configmap.data.name | default(omit) }}
-#         {% endfor -%}
-#       }
+- name: Get Services
+  k8s_info:
+    api_version: v1
+    kind: Service
+  register: services
 
-- ansible.builtin.set_fact:
-    completed_scaling: []
-    completed_expose: []
-    completed_rbac: []
-    completed_deploy_code: []
-    completed_database: []
+- name: Get participants who have started or completed applications
+  ansible.builtin.set_fact:
+    started_applications: "{{ services | json_query(webapp_query)}}"
+    completed_applications: "{{ services | json_query(database_query)}}"
+  vars:
+    webapp_query: resources[?metadata.name=='webapp'].metadata.namespace
+    database_query: resources[?metadata.name=='database'].metadata.namespace
+    
+- name: Get username configmaps
+  k8s_info:
+    kind: ConfigMap
+    label_selectors:
+      - workshop = scoreboard
+  register: username_configmaps
+
+- name: Set username overrides
+  ansible.builtin.set_fact:
+    username_overrides: |
+      {
+        {%- for configmap in username_configmaps.resources %}
+          {{ configmap.data.username }}: {{ configmap.data.displayName | default(omit) }}
+        {% endfor -%}
+      }
 
 - name: Store workshop task results
   ansible.builtin.set_fact:
@@ -109,7 +123,7 @@
             - module: "0"
               status: {{ ('oadp-'+username in completed_backup_recovery) | ternary('success', ('oadp-'+username in started_backup_recovery) | ternary('info', 'pending'))}}
             - module: "0"
-              status: {{ (username in completed_deploy_code) | ternary('success', 'pending') }}
+              status: {{ ('vmexamples-'+username in completed_template_instance) | ternary('success', ('vmexamples-'+username in started_template_instance) | ternary('info', 'pending'))}}
             - module: "0"
-              status: {{ (username in completed_database) | ternary('success', 'pending') }}
+              status: {{ ('vmexamples-'+username in completed_applications) | ternary('success', ('vmexamples-'+username in started_applications) | ternary('info', 'pending'))}}
       {% endfor -%}

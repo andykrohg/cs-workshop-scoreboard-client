@@ -1,9 +1,7 @@
 # Workshop Scoreboard Client
-This repository houses the client-side component for the **workshop scoreboard**. It consists of an Ansible playbook that runs continuously to gather workshop task completion data and report it up to a [scoreboard server](https://github.com/andykrohg/cs-workshop-scoreboard-server).
+This repository houses the client-side component for the **workshop scoreboard**. It consists of an Ansible playbook that runs continuously to gather workshop task completion data and reports it up to a [scoreboard server](https://github.com/andykrohg/workshop-scoreboard-server).
 
 ## Deploy me
-Unlike other branches in this repo, this client is deployed by the *instructor*, not the students, since the entire workshop runs on a single cluster.
-
 ### Set the number of users
 Set this to the number of users you deployed your workshop for.
 ```bash
@@ -21,7 +19,7 @@ WORKSHOP_NAME=experience-openshift-virtualization
 ```
 ### Deploy the app using a template
 ```bash
-oc new-project workshop-scoreboard-client
+oc new-project workshop-scoreboard
 
 oc process -f https://raw.githubusercontent.com/andykrohg/cs-workshop-scoreboard-client/refs/heads/main/template.yml \
     -p NUMBER_OF_USERS=$NUMBER_OF_USERS \
