@@ -1,0 +1,115 @@
+- name: Get projects
+  k8s_info:
+    kind: Project
+    api_version: project.openshift.io/v1
+  register: projects
+
+- name: Get VMs
+  k8s_info:
+    api_version: kubevirt.io/v1
+    kind: VirtualMachine
+  register: vms
+
+- name: Get participants who have started or completed VM management
+  ansible.builtin.set_fact:
+    started_vm_management: "{{ projects | json_query('resources[*].metadata.annotations.\"openshift.io/requester\"') }}"
+    completed_vm_management: "{{ vms | json_query('resources[*].metadata.namespace') }}"
+
+- name: Get migration plans
+  k8s_info:
+    api_version: forklift.konveyor.io/v1beta1
+    kind: Plan
+  register: migration_plans
+
+- name: Get participants who have started or completed live migration
+  ansible.builtin.set_fact:
+    created_migration_plan: "{{ migration_plans | json_query('resources[*].metadata.namespace') }}"
+    completed_migration_plan: []
+
+- name: Get VM Snapshots
+  k8s_info:
+    api_version: snapshot.kubevirt.io/v1alpha1
+    kind: VirtualMachineSnapshot
+  register: vm_snapshots
+
+- name: Get VM restore objects
+  k8s_info:
+    api_version: snapshot.kubevirt.io/v1alpha1
+    kind: VirtualMachineRestore
+  register: vm_restores
+
+- name: Get participants who have started or completed VM restore
+  ansible.builtin.set_fact:
+    started_vm_restore: "{{ vm_snapshots | json_query('resources[*].metadata.namespace') }}"
+    completed_vm_restore: "{{ vm_restores | json_query('resources[?status.complete].metadata.namespace') }}"
+
+- name: Get Backups
+  k8s_info:
+    api_version: velero.io/v1
+    kind: Backup
+  register: backups
+
+- name: Get Restores
+  k8s_info:
+    api_version: velero.io/v1
+    kind: Restore
+  register: restores
+
+- name: Get participants who have started or completed backup and recovery
+  ansible.builtin.set_fact:
+    started_backup_recovery: "{{ backups | json_query('resources[*].metadata.namespace') }}"
+    completed_backup_recovery: "{{ restores | json_query(restore_query) }}"
+  vars:
+    restore_query: resources[?status.phase=='Completed'].metadata.namespace
+
+- name: Get Templates
+  k8s_info:
+    api_version: template.openshift.io/v1
+    kind: Template
+    label_selectors:
+      - vm.kubevirt.io/template = centos-stream9-server-small
+  resources: templates
+
+# - name: Get username configmaps
+#   k8s_info:
+#     kind: ConfigMap
+#     label_selectors:
+#       - ocp4 = getting-started
+#   register: username_configmaps
+
+# - name: Set username overrides
+#   ansible.builtin.set_fact:
+#     username_overrides: |
+#       {
+#         {%- for configmap in username_configmaps.resources %}
+#           {{ configmap.metadata.namespace }}: {{ configmap.data.name | default(omit) }}
+#         {% endfor -%}
+#       }
+
+- ansible.builtin.set_fact:
+    completed_scaling: []
+    completed_expose: []
+    completed_rbac: []
+    completed_deploy_code: []
+    completed_database: []
+
+- name: Store workshop task results
+  ansible.builtin.set_fact:
+    user_completion_data: |
+      {%- for username in lookup("sequence", "1-" + number_of_users + ":user%i", wantlist=True) %}
+        - attendeeName: {{ username }}
+          displayName: {{ (username_overrides | from_yaml)[username] | default(omit) }}
+          workshopTasks:
+            - module: "0"
+              status: {{ ('vmexamples-'+username in completed_vm_management) | ternary('success', (username in started_vm_management) | ternary('info', 'pending'))}}
+            - module: "0"
+              status: {{ ('mtv-'+username in completed_migration_plan) | ternary('success', ('mtv-'+username in created_migration_plan) | ternary('info', 'pending'))}}
+            - module: "0"
+              status: {{ ('vmexamples-'+username in completed_vm_restore) | ternary('success', ('vmexamples-'+username in started_vm_restore) | ternary('info', 'pending'))}}
+            - module: "0"
+              status: {{ ('oadp-'+username in completed_backup_recovery) | ternary('success', ('oadp-'+username in started_backup_recovery) | ternary('info', 'pending'))}}
+            - module: "0"
+              status: {{ (username in completed_deploy_code) | ternary('success', 'pending') }}
+            - module: "0"
+              status: {{ (username in completed_database) | ternary('success', 'pending') }}
+      {% endfor -%}

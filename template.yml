@@ -1,25 +1,25 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: cs-workshop-scoreboard-template
+  name: workshop-scoreboard-template
   annotations:
-    description: "Cloud Services Workshop Scoreboard Template"
+    description: "Workshop Scoreboard Template"
     iconClass: "icon-openshift"
     tags: "workshop"
 objects:
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
-    name: cs-workshop-scoreboard-client
-    namespace: cs-workshop-scoreboard-client
+    name: workshop-scoreboard-client
+    namespace: workshop-scoreboard-client
   spec:
     selector: 
       matchLabels:
-        app: cs-workshop-scoreboard-client
+        app: workshop-scoreboard-client
     template:
       metadata:
         labels:
-          app: cs-workshop-scoreboard-client
+          app: workshop-scoreboard-client
       spec:
         containers:
         - env:  
@@ -27,8 +27,10 @@ objects:
             value: ${NUMBER_OF_USERS}
           - name: SCOREBOARD_SERVER
             value: ${SCOREBOARD_SERVER}
-          image: quay.io/akrohg/cs-workshop-scoreboard-client:ocp4-getting-started
-          name: cs-workshop-scoreboard-client
+          - name: WORKSHOP_NAME
+            value: ${WORKSHOP_NAME}
+          image: quay.io/akrohg/workshop-scoreboard-client
+          name: workshop-scoreboard-client
 - kind: ClusterRoleBinding
   apiVersion: rbac.authorization.k8s.io/v1
   metadata:
@@ -36,7 +38,7 @@ objects:
   subjects:
     - kind: ServiceAccount
       name: default
-      namespace: cs-workshop-scoreboard-client
+      namespace: workshop-scoreboard-client
   roleRef:
     apiGroup: rbac.authorization.k8s.io
     kind: ClusterRole
@@ -47,4 +49,7 @@ parameters:
   required: true
 - description: Scoreboard Server URL
   name: SCOREBOARD_SERVER
+  required: true
+- description: Workshop Name
+  name: WORKSHOP_NAME
   required: true

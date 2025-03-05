@@ -1,0 +1,16 @@
+- hosts: localhost
+  gather_facts: false
+  vars:
+    scoreboard_server: "{{ lookup('env', 'SCOREBOARD_SERVER') }}"
+    number_of_users: "{{ lookup('env', 'NUMBER_OF_USERS') }}"
+  tasks:
+  - name: Include Workshop Tasks
+    include_tasks: workshop_tasks.yml
+
+  - name: Post progress report
+    uri:
+      url: "{{ scoreboard_server }}/progress-reports"
+      method: PUT
+      body: "{{ user_completion_data | from_yaml }}"
+      body_format: json
+      status_code: 204
