@@ -14,6 +14,6 @@ RUN curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/opensh
 
 USER default
 
-COPY loop.sh workshops
+COPY loop.sh workshops ./workshops
 
 ENTRYPOINT ./loop.sh
