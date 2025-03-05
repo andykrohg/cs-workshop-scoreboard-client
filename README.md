@@ -23,7 +23,7 @@ WORKSHOP_NAME=experience-openshift-virtualization
 ```bash
 oc new-project workshop-scoreboard-client
 
-oc process -f https://raw.githubusercontent.com/andykrohg/cs-workshop-scoreboard-client/ocp4-getting-started/template.yml \
+oc process -f https://raw.githubusercontent.com/andykrohg/cs-workshop-scoreboard-client/refs/heads/main/template.yml \
     -p NUMBER_OF_USERS=$NUMBER_OF_USERS \
     -p SCOREBOARD_SERVER=$SCOREBOARD_SERVER 
     -p WORKSHOP_NAME=$WORKSHOP_NAME | oc apply -f -
